@@ -1,0 +1,6 @@
+RAND: d101657c59f18358ccb12fb2b40793d3
+[32m03/26 00:04:40.780[0m: [[33mgmm[0m] [1;32mINFO[0m:     UTC [2026-03-26T00:04:40] Timezone[0]/DST[0] (../src/amf/gmm-build.c:558)
+[32m03/26 00:04:40.780[0m: [[33mgmm[0m] [1;32mINFO[0m:     LOCAL [2026-03-26T00:04:40] Timezone[0]/DST[0] (../src/amf/gmm-build.c:563)
+[32m03/26 00:04:40.781[0m: [[33mamf[0m] [1;32mINFO[0m: [Added] Number of AMF-Sessions is now 3 (../src/amf/context.c:2544)
+[32m03/26 00:04:40.781[0m: [[33mgmm[0m] [1;32mINFO[0m: UE SUPI[imsi-001010000000001] DNN[internet] S_NSSAI[SST:1 SD:0x1] (../src/amf/gmm-handler.c:1247)
+[32m03/26 00:04:40.988[0m: [[33mamf[0m] [1;32mINFO[0m: [imsi-001010000000001:1:11][0:0:NULL] /nsmf-pdusession/v1/sm-contexts/{smContextRef}/modify (../src/amf/nsmf-handler.c:837)

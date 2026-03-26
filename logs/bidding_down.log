@@ -1,0 +1,2 @@
+   11   4.641138   10.10.0.12 → 10.10.0.30   NGAP/NAS-5GS 112 SACK (Ack=0, Arwnd=106496) , DownlinkNASTransport, Registration reject (UE security capabilities mismatch)
+   27  15.750009   10.10.0.12 → 10.10.0.30   NGAP/NAS-5GS 112 SACK (Ack=2, Arwnd=106496) , DownlinkNASTransport, Registration reject (UE security capabilities mismatch)

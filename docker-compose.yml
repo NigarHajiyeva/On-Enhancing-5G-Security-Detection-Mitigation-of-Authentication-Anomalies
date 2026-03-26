@@ -1,0 +1,248 @@
+version: '3.8'
+
+networks:
+  5gcore:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.10.0.0/24
+
+services:
+  mongodb:
+    image: mongo:6.0
+    container_name: mongodb
+    networks:
+      5gcore:
+        ipv4_address: 10.10.0.2
+    volumes:
+      - mongodb_data:/data/db
+    restart: unless-stopped
+
+  webui:
+    image: gradiant/open5gs-webui:2.6.6
+    container_name: open5gs-webui
+    depends_on:
+      - mongodb
+    environment:
+      - DB_URI=mongodb://10.10.0.2/open5gs
+      - MONGODB_URI=mongodb://10.10.0.2/open5gs
+      - NODE_ENV=dev
+    ports:
+      - "9999:9999"
+    networks:
+      5gcore:
+        ipv4_address: 10.10.0.3
+    restart: unless-stopped
+
+  nrf:
+    image: gradiant/open5gs:2.6.6
+    container_name: open5gs-nrf
+    command: open5gs-nrfd
+    networks:
+      5gcore:
+        ipv4_address: 10.10.0.10
+    volumes:
+      - ./config/nrf.yaml:/opt/open5gs/etc/open5gs/nrf.yaml
+    restart: unless-stopped
+
+  scp:
+    image: gradiant/open5gs:2.6.6
+    container_name: open5gs-scp
+    command: open5gs-scpd
+    depends_on:
+      - nrf
+    networks:
+      5gcore:
+        ipv4_address: 10.10.0.11
+    volumes:
+      - ./config/scp.yaml:/opt/open5gs/etc/open5gs/scp.yaml
+    restart: unless-stopped
+
+  amf:
+    image: gradiant/open5gs:2.6.6
+    container_name: open5gs-amf
+    command: open5gs-amfd
+    depends_on:
+      - nrf
+      - scp
+    networks:
+      5gcore:
+        ipv4_address: 10.10.0.12
+    ports:
+      - "38412:38412/sctp"
+    volumes:
+      - ./config/amf.yaml:/opt/open5gs/etc/open5gs/amf.yaml
+    restart: unless-stopped
+
+  smf:
+    image: gradiant/open5gs:2.6.6
+    container_name: open5gs-smf
+    command: open5gs-smfd
+    depends_on:
+      - nrf
+      - scp
+    networks:
+      5gcore:
+        ipv4_address: 10.10.0.13
+    volumes:
+      - ./config/smf.yaml:/opt/open5gs/etc/open5gs/smf.yaml
+    restart: unless-stopped
+
+  upf:
+    image: gradiant/open5gs:2.6.6
+    container_name: open5gs-upf
+    command: open5gs-upfd
+    cap_add:
+      - NET_ADMIN
+      - SYS_ADMIN
+      - NET_RAW
+    privileged: true
+    sysctls:
+      - net.ipv4.ip_forward=1
+      - net.ipv6.conf.all.disable_ipv6=1
+    networks:
+      5gcore:
+        ipv4_address: 10.10.0.14
+    devices:
+      - /dev/net/tun
+    volumes:
+      - ./config/upf.yaml:/opt/open5gs/etc/open5gs/upf.yaml
+    restart: unless-stopped
+
+  ausf:
+    image: gradiant/open5gs:2.6.6
+    container_name: open5gs-ausf
+    command: open5gs-ausfd
+    depends_on:
+      - nrf
+      - scp
+    networks:
+      5gcore:
+        ipv4_address: 10.10.0.15
+    volumes:
+      - ./config/ausf.yaml:/opt/open5gs/etc/open5gs/ausf.yaml
+    restart: unless-stopped
+
+  udm:
+    image: gradiant/open5gs:2.6.6
+    container_name: open5gs-udm
+    command: open5gs-udmd
+    depends_on:
+      - nrf
+      - scp
+    networks:
+      5gcore:
+        ipv4_address: 10.10.0.16
+    volumes:
+      - ./config/udm.yaml:/opt/open5gs/etc/open5gs/udm.yaml
+    restart: unless-stopped
+
+  udr:
+    image: gradiant/open5gs:2.6.6
+    container_name: open5gs-udr
+    environment:
+      - DB_URI=mongodb://mongodb/open5gs
+    command: open5gs-udrd
+    depends_on:
+      - nrf
+      - scp
+      - mongodb
+    networks:
+      5gcore:
+        ipv4_address: 10.10.0.17
+    restart: unless-stopped
+
+  pcf:
+    image: gradiant/open5gs:2.6.6
+    container_name: open5gs-pcf
+    environment:
+      - DB_URI=mongodb://mongodb/open5gs
+    command: open5gs-pcfd
+    depends_on:
+      - nrf
+      - scp
+    networks:
+      5gcore:
+        ipv4_address: 10.10.0.18
+    restart: unless-stopped
+
+  nssf:
+    image: gradiant/open5gs:2.6.6
+    container_name: open5gs-nssf
+    command: open5gs-nssfd
+    depends_on:
+      - nrf
+      - scp
+    networks:
+      5gcore:
+        ipv4_address: 10.10.0.19
+    volumes:
+      - ./config/nssf.yaml:/opt/open5gs/etc/open5gs/nssf.yaml
+    restart: unless-stopped
+
+  bsf:
+    image: gradiant/open5gs:2.6.6
+    container_name: open5gs-bsf
+    command: open5gs-bsfd
+    depends_on:
+      - nrf
+      - scp
+    networks:
+      5gcore:
+        ipv4_address: 10.10.0.20
+    volumes:
+      - ./config/bsf.yaml:/opt/open5gs/etc/open5gs/bsf.yaml
+    restart: unless-stopped
+
+  gnb:
+    image: gradiant/ueransim:3.2.6
+    container_name: ueransim-gnb
+    command: gnb /etc/ueransim/gnb.yaml
+    depends_on:
+      - amf
+    networks:
+      5gcore:
+        ipv4_address: 10.10.0.30
+    volumes:
+      - ./config/gnb.yaml:/etc/ueransim/gnb.yaml
+    restart: unless-stopped
+
+  ue1:
+    image: gradiant/ueransim:3.2.6
+    container_name: ueransim-ue1
+    command: ue /etc/ueransim/ue1.yaml
+    depends_on:
+      - gnb
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun
+    environment:
+      - GNB_IP=10.10.0.30
+    networks:
+      5gcore:
+        ipv4_address: 10.10.0.31
+    volumes:
+      - ./config/ue1.yaml:/etc/ueransim/ue.yaml
+    restart: unless-stopped
+
+  ue2:
+    image: gradiant/ueransim:3.2.6
+    container_name: ueransim-ue2
+    command: ue /etc/ueransim/ue2.yaml
+    depends_on:
+      - gnb
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun
+    environment:
+      - GNB_IP=10.10.0.30
+    networks:
+      5gcore:
+        ipv4_address: 10.10.0.32
+    volumes:
+      - ./config/ue2.yaml:/etc/ueransim/ue.yaml
+    restart: unless-stopped
+volumes:
+  mongodb_data:
