@@ -9,6 +9,10 @@ imei: '356938035643803'
 imeiSv: '4370816125816151'
 gnbSearchList:
   - 10.10.0.30
+protectionScheme: 1
+homeNetworkPublicKey: 'e421686f6fb2d70e3fa28d940494095686c3179fef53514667a6ed106b8a7d3d'
+homeNetworkPublicKeyId: 1
+routingIndicator: '0000'
 sessions:
   - type: 'IPv4'
     apn: 'internet'
@@ -32,11 +36,9 @@ ciphering:
 integrityMaxRate:
   uplink: 'full'
   downlink: 'full'
-
 uacAic:
   mps: false
   mcs: false
-
 uacAcc:
   normalClass: 0
   class11: false

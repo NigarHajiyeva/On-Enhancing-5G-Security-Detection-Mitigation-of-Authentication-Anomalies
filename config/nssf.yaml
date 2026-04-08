@@ -309,10 +309,11 @@ nssf:
       - dev: eth0
         port: 7777
     nsi:
-      - dev: eth0
+      - addr: 10.10.0.10
         port: 7777
         s_nssai:
           sst: 1
+          sd: 000001
 
 #
 #  <SBI Client>>

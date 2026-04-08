@@ -1,6 +1,6 @@
-RAND: d101657c59f18358ccb12fb2b40793d3
-[32m03/26 00:04:40.780[0m: [[33mgmm[0m] [1;32mINFO[0m:     UTC [2026-03-26T00:04:40] Timezone[0]/DST[0] (../src/amf/gmm-build.c:558)
-[32m03/26 00:04:40.780[0m: [[33mgmm[0m] [1;32mINFO[0m:     LOCAL [2026-03-26T00:04:40] Timezone[0]/DST[0] (../src/amf/gmm-build.c:563)
-[32m03/26 00:04:40.781[0m: [[33mamf[0m] [1;32mINFO[0m: [Added] Number of AMF-Sessions is now 3 (../src/amf/context.c:2544)
-[32m03/26 00:04:40.781[0m: [[33mgmm[0m] [1;32mINFO[0m: UE SUPI[imsi-001010000000001] DNN[internet] S_NSSAI[SST:1 SD:0x1] (../src/amf/gmm-handler.c:1247)
-[32m03/26 00:04:40.988[0m: [[33mamf[0m] [1;32mINFO[0m: [imsi-001010000000001:1:11][0:0:NULL] /nsmf-pdusession/v1/sm-contexts/{smContextRef}/modify (../src/amf/nsmf-handler.c:837)
+RAND: 9296c7364c42cee38a5f45a2e654ca60
+[32m04/02 16:34:34.364[0m: [[33msbi[0m] [1;32mINFO[0m: [d508540a-2eb1-41f1-b49e-531eb65fbe91] Subscription created until 2026-04-03T16:34:34.337829+00:00 [duration:86400,validity:86399.973193,patch:43199.986596] (../lib/sbi/nnrf-handler.c:509)
+[32m04/02 16:34:34.376[0m: [[33msbi[0m] [1;32mINFO[0m: [d508aa86-2eb1-41f1-b49e-531eb65fbe91] Subscription created until 2026-04-03T16:34:34.340033+00:00 [duration:86400,validity:86399.963201,patch:43199.981600] (../lib/sbi/nnrf-handler.c:509)
+[32m04/02 16:34:34.389[0m: [[33msbi[0m] [1;32mINFO[0m: [d508be90-2eb1-41f1-b49e-531eb65fbe91] Subscription created until 2026-04-03T16:34:34.340536+00:00 [duration:86400,validity:86399.950803,patch:43199.975401] (../lib/sbi/nnrf-handler.c:509)
+[32m04/02 16:34:34.389[0m: [[33msbi[0m] [1;32mINFO[0m: [d508e230-2eb1-41f1-b49e-531eb65fbe91] Subscription created until 2026-04-03T16:34:34.341501+00:00 [duration:86400,validity:86399.951563,patch:43199.975781] (../lib/sbi/nnrf-handler.c:509)
+[32m04/02 16:34:34.397[0m: [[33msbi[0m] [1;32mINFO[0m: [d509437e-2eb1-41f1-b49e-531eb65fbe91] Subscription created until 2026-04-03T16:34:34.343950+00:00 [duration:86400,validity:86399.945960,patch:43199.972980] (../lib/sbi/nnrf-handler.c:509)

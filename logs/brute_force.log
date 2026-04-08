@@ -1,20 +1,3 @@
-[32m03/25 20:58:29.363[0m: [[33msbi[0m] [1;33mERROR[0m: Connection timer expired (../lib/sbi/client.c:533)
-[32m03/25 20:58:40.375[0m: [[33msbi[0m] [1;33mERROR[0m: Connection timer expired (../lib/sbi/client.c:533)
-[32m03/25 20:58:51.387[0m: [[33msbi[0m] [1;33mERROR[0m: Connection timer expired (../lib/sbi/client.c:533)
-[32m03/25 20:59:02.400[0m: [[33msbi[0m] [1;33mERROR[0m: Connection timer expired (../lib/sbi/client.c:533)
-[32m03/25 20:59:13.413[0m: [[33msbi[0m] [1;33mERROR[0m: Connection timer expired (../lib/sbi/client.c:533)
-[32m03/25 20:59:24.416[0m: [[33msbi[0m] [1;33mERROR[0m: Connection timer expired (../lib/sbi/client.c:533)
-[32m03/25 20:59:35.420[0m: [[33msbi[0m] [1;33mERROR[0m: Connection timer expired (../lib/sbi/client.c:533)
-[32m03/25 20:59:59.052[0m: [[33msock[0m] [1;33mERROR[0m: getaddrinfo(0:scp:7777:0x0) failed (11:Resource temporarily unavailable) (../lib/core/ogs-sockaddr.c:116)
-[32m03/25 22:17:12.989[0m: [[33msock[0m] [1;33mERROR[0m: getaddrinfo(0:scp:7777:0x0) failed (11:Resource temporarily unavailable) (../lib/core/ogs-sockaddr.c:116)
-[32m03/25 22:37:16.138[0m: [[33mausf[0m] [1;33mERROR[0m: [suci-0-001-01-0000-0-0-0000000099] HTTP response error [401] (../src/ausf/ue-sm.c:158)
-[32m03/25 23:15:49.633[0m: [[33mausf[0m] [1;33mERROR[0m: [suci-0-001-01-0000-0-0-0000000099] HTTP response error [401] (../src/ausf/ue-sm.c:158)
-[32m03/25 23:16:05.642[0m: [[33mausf[0m] [1;33mERROR[0m: [suci-0-001-01-0000-0-0-0000000099] HTTP response error [401] (../src/ausf/ue-sm.c:158)
-[32m03/25 23:16:21.768[0m: [[33mausf[0m] [1;33mERROR[0m: [suci-0-001-01-0000-0-0-0000000099] HTTP response error [401] (../src/ausf/ue-sm.c:158)
-[32m03/25 23:16:37.802[0m: [[33mausf[0m] [1;33mERROR[0m: [suci-0-001-01-0000-0-0-0000000099] HTTP response error [401] (../src/ausf/ue-sm.c:158)
-[32m03/25 23:16:53.750[0m: [[33mausf[0m] [1;33mERROR[0m: [suci-0-001-01-0000-0-0-0000000099] HTTP response error [401] (../src/ausf/ue-sm.c:158)
-[32m03/25 23:17:09.731[0m: [[33mausf[0m] [1;33mERROR[0m: [suci-0-001-01-0000-0-0-0000000099] HTTP response error [401] (../src/ausf/ue-sm.c:158)
-[32m03/25 23:17:25.716[0m: [[33mausf[0m] [1;33mERROR[0m: [suci-0-001-01-0000-0-0-0000000099] HTTP response error [401] (../src/ausf/ue-sm.c:158)
-[32m03/25 23:17:41.740[0m: [[33mausf[0m] [1;33mERROR[0m: [suci-0-001-01-0000-0-0-0000000099] HTTP response error [401] (../src/ausf/ue-sm.c:158)
-[32m03/25 23:17:57.810[0m: [[33mausf[0m] [1;33mERROR[0m: [suci-0-001-01-0000-0-0-0000000099] HTTP response error [401] (../src/ausf/ue-sm.c:158)
-[32m03/25 23:18:13.790[0m: [[33mausf[0m] [1;33mERROR[0m: [suci-0-001-01-0000-0-0-0000000099] HTTP response error [401] (../src/ausf/ue-sm.c:158)
+MAC failures: 20
+Auth rejects: 20
+Reg rejects: 0

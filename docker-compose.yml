@@ -195,7 +195,7 @@ services:
     restart: unless-stopped
 
   gnb:
-    image: gradiant/ueransim:3.2.6
+    image: ueransim-custom:3.2.7
     container_name: ueransim-gnb
     command: gnb /etc/ueransim/gnb.yaml
     depends_on:
@@ -208,9 +208,9 @@ services:
     restart: unless-stopped
 
   ue1:
-    image: gradiant/ueransim:3.2.6
+    image: ueransim-custom:3.2.7
     container_name: ueransim-ue1
-    command: ue /etc/ueransim/ue1.yaml
+    command: ue /etc/ueransim/ue.yaml
     depends_on:
       - gnb
     cap_add:
@@ -227,9 +227,9 @@ services:
     restart: unless-stopped
 
   ue2:
-    image: gradiant/ueransim:3.2.6
+    image: ueransim-custom:3.2.7
     container_name: ueransim-ue2
-    command: ue /etc/ueransim/ue2.yaml
+    command: ue /etc/ueransim/ue.yaml
     depends_on:
       - gnb
     cap_add:
@@ -244,5 +244,29 @@ services:
     volumes:
       - ./config/ue2.yaml:/etc/ueransim/ue.yaml
     restart: unless-stopped
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - "9091:9090"
+    volumes:
+      - ./config/prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      5gcore:
+        ipv4_address: 10.10.0.60
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    ports:
+      - "3000:3000"
+    networks:
+      5gcore:
+        ipv4_address: 10.10.0.61
+    restart: unless-stopped
+
 volumes:
   mongodb_data:

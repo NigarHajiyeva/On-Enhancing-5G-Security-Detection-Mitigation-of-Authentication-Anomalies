@@ -9,6 +9,8 @@ imei: '356938035643804'
 imeiSv: '4370816125816154'
 gnbSearchList:
   - 10.10.0.30
+protectionScheme: 0
+routingIndicator: '0000'
 sessions:
   - type: 'IPv4'
     apn: 'internet'

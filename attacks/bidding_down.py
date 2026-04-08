@@ -40,8 +40,9 @@ def main():
             --name ueransim-ue-bidding \
             --network thesis-5g_5gcore \
             --ip 10.10.0.42 \
+            --privileged \
             -v /home/eit42s/thesis-5g/config/ue-bidding.yaml:/etc/ueransim/ue.yaml \
-            gradiant/ueransim:3.2.6 ue /etc/ueransim/ue.yaml""",
+            ueransim-custom:3.2.7 ue /etc/ueransim/ue.yaml""",
         shell=True, capture_output=True, text=True
     ).stdout.strip()
 

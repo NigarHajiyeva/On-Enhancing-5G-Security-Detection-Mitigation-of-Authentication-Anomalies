@@ -1,5 +1,5 @@
-   16   5.439742   10.10.0.50 → 10.10.0.12   NGAP 140 NGSetupRequest
-   18   5.443771   10.10.0.12 → 10.10.0.50   NGAP 128 NGSetupResponse
-   47  23.153192   10.10.0.50 → 10.10.0.12   NGAP/NAS-5GS 144 InitialUEMessage, Registration request
-   66  23.469259   10.10.0.12 → 10.10.0.50   NGAP/NAS-5GS 136 DownlinkNASTransport, Authentication request
-   67  23.524165   10.10.0.50 → 10.10.0.12   NGAP/NAS-5GS 152 SACK (Ack=1, Arwnd=106496) , UplinkNASTransport, Authentication response
+   18   2.837181   10.10.0.50 → 10.10.0.12   NGAP 140 NGSetupRequest
+   20   2.849904   10.10.0.12 → 10.10.0.50   NGAP 128 NGSetupResponse
+   72  18.421707   10.10.0.50 → 10.10.0.12   NGAP/NAS-5GS 184 InitialUEMessage, Registration request
+   80  18.474073   10.10.0.12 → 10.10.0.50   NGAP/NAS-5GS 152 SACK (Ack=1, Arwnd=106496) , DownlinkNASTransport, Authentication request
+   81  18.477356   10.10.0.50 → 10.10.0.12   NGAP/NAS-5GS 152 SACK (Ack=1, Arwnd=106496) , UplinkNASTransport, Authentication response

@@ -9,6 +9,10 @@ imei: '356938035643801'
 imeiSv: '4370816125816151'
 gnbSearchList:
   - 10.10.0.50
+protectionScheme: 1
+homeNetworkPublicKey: 'e421686f6fb2d70e3fa28d940494095686c3179fef53514667a6ed106b8a7d3d'
+homeNetworkPublicKeyId: 1
+routingIndicator: '0000'
 sessions:
   - type: 'IPv4'
     apn: 'internet'

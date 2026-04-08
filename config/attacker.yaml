@@ -6,9 +6,11 @@ op: 'E8ED289DEBA952E4283B54E88E6183CA'
 opType: 'OPC'
 amf: '8000'
 imei: '356938035643899'
-imeiSv: '4370816125816199'
+imeiSv: '4370816125816151'
 gnbSearchList:
   - 10.10.0.30
+protectionScheme: 0
+routingIndicator: '0000'
 sessions:
   - type: 'IPv4'
     apn: 'internet'

@@ -42,7 +42,7 @@ def main():
             --network thesis-5g_5gcore \
             --ip 10.10.0.50 \
             -v /home/eit42s/thesis-5g/config/rogue-gnb.yaml:/etc/ueransim/gnb.yaml \
-            gradiant/ueransim:3.2.6 gnb /etc/ueransim/gnb.yaml""",
+            ueransim-custom:3.2.7 gnb /etc/ueransim/gnb.yaml""",
         shell=True
     )
     time.sleep(15)
@@ -62,10 +62,9 @@ def main():
             --name ueransim-ue-rogue \
             --network thesis-5g_5gcore \
             --ip 10.10.0.51 \
-            --cap-add NET_ADMIN \
-            --device /dev/net/tun \
+            --privileged \
             -v /home/eit42s/thesis-5g/config/ue-rogue.yaml:/etc/ueransim/ue.yaml \
-            gradiant/ueransim:3.2.6 ue /etc/ueransim/ue.yaml""",
+            ueransim-custom:3.2.7 ue /etc/ueransim/ue.yaml""",
         shell=True
     )
     time.sleep(20)
