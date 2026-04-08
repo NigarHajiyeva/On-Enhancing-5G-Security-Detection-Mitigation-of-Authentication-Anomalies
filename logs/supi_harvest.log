@@ -1,1 +1,19 @@
+=== PROTECTION SCHEME GREP ===
                                                     .... 0000 = Protection scheme Id: NULL scheme (0)
+                                                    .... 0001 = Protection scheme Id: ECIES scheme profile A (1)
+                                                    .... 0001 = Protection scheme Id: ECIES scheme profile A (1)
+
+=== SCHEME ID FIELD VALUES ===
+
+
+=== AMF LOGS ===
+[32m04/08 20:18:02.245[0m: [[33mgmm[0m] [1;32mINFO[0m: UE SUPI[imsi-001010000000002] DNN[internet] S_NSSAI[SST:1 SD:0x1] (../src/amf/gmm-handler.c:1247)
+[32m04/08 20:54:39.240[0m: [[33mamf[0m] [1;32mINFO[0m: [suci-0-001-01-0000-0-0-0000000003] Unknown UE by SUCI (../src/amf/context.c:1789)
+[32m04/08 20:54:39.242[0m: [[33mgmm[0m] [1;32mINFO[0m: [suci-0-001-01-0000-0-0-0000000003]    SUCI (../src/amf/gmm-handler.c:157)
+[32m04/08 20:54:39.494[0m: [[33mgmm[0m] [1;32mINFO[0m: UE SUPI[imsi-001010000000003] DNN[internet] S_NSSAI[SST:1 SD:0x1] (../src/amf/gmm-handler.c:1247)
+[32m04/08 20:54:40.336[0m: [[33mamf[0m] [1;32mINFO[0m: [suci-0-001-01-0000-1-1-3cb97b6cf55f5e331ade5c9270f0a1cbbaac0db058e6d2d10b71facb4472d642216d1d33913248a32f95c32893] Unknown UE by SUCI (../src/amf/context.c:1789)
+[32m04/08 20:54:40.336[0m: [[33mgmm[0m] [1;32mINFO[0m: [suci-0-001-01-0000-1-1-3cb97b6cf55f5e331ade5c9270f0a1cbbaac0db058e6d2d10b71facb4472d642216d1d33913248a32f95c32893]    SUCI (../src/amf/gmm-handler.c:157)
+[32m04/08 20:54:40.581[0m: [[33mgmm[0m] [1;32mINFO[0m: UE SUPI[imsi-001010000000002] DNN[internet] S_NSSAI[SST:1 SD:0x1] (../src/amf/gmm-handler.c:1247)
+[32m04/08 20:54:40.581[0m: [[33mamf[0m] [1;32mINFO[0m: [suci-0-001-01-0000-1-1-ce91d956947cd1a5f5d4a2645d5493694658b44a597cb64071c0d35908f0b206ff884d706202f75152d11219f9] Unknown UE by SUCI (../src/amf/context.c:1789)
+[32m04/08 20:54:40.582[0m: [[33mgmm[0m] [1;32mINFO[0m: [suci-0-001-01-0000-1-1-ce91d956947cd1a5f5d4a2645d5493694658b44a597cb64071c0d35908f0b206ff884d706202f75152d11219f9]    SUCI (../src/amf/gmm-handler.c:157)
+[32m04/08 20:54:41.029[0m: [[33mgmm[0m] [1;32mINFO[0m: UE SUPI[imsi-001010000000001] DNN[internet] S_NSSAI[SST:1 SD:0x1] (../src/amf/gmm-handler.c:1247)
