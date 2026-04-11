@@ -1,2 +1,12 @@
-   16   2.954634   10.10.0.12 → 10.10.0.30   NGAP/NAS-5GS 112 SACK (Ack=0, Arwnd=106496) , DownlinkNASTransport, Registration reject (UE security capabilities mismatch)
-   51  12.969028   10.10.0.12 → 10.10.0.30   NGAP/NAS-5GS 112 SACK (Ack=2, Arwnd=106496) , DownlinkNASTransport, Registration reject (UE security capabilities mismatch)
+=== TSHARK OUTPUT ===
+    6   2.827177   10.10.0.12 → 10.10.0.30   NGAP/NAS-5GS 112 SACK (Ack=0, Arwnd=106496) , DownlinkNASTransport, Registration reject (UE security capabilities mismatch)
+   44   4.253593   10.10.0.12 → 10.10.0.30   NGAP/NAS-5GS 132 SACK (Ack=3, Arwnd=106496) , DownlinkNASTransport, Security mode command
+  108   4.588775   10.10.0.12 → 10.10.0.30   NGAP/NAS-5GS 116 DownlinkNASTransport, Security mode command
+  210  13.775571   10.10.0.12 → 10.10.0.30   NGAP/NAS-5GS 112 SACK (Ack=16, Arwnd=106496) , DownlinkNASTransport, Registration reject (UE security capabilities mismatch)
+  243  24.779270   10.10.0.12 → 10.10.0.30   NGAP/NAS-5GS 112 SACK (Ack=18, Arwnd=106496) , DownlinkNASTransport, Registration reject (UE security capabilities mismatch)
+
+=== AMF LOGS ===
+[32m04/08 22:52:03.656[0m: [[33mamf[0m] [1;36mWARNING[0m: [suci-0-001-01-0000-1-1-81b870e31083083dd965f152a28932a01c729c735b686546b20a30fdf9b0a21690e8085c0615f3eaaa2a58a739] Registration reject [23] (../src/amf/nas-path.c:219)
+[32m04/08 22:52:14.602[0m: [[33mamf[0m] [1;36mWARNING[0m: [suci-0-001-01-0000-1-1-81b870e31083083dd965f152a28932a01c729c735b686546b20a30fdf9b0a21690e8085c0615f3eaaa2a58a739] Registration reject [23] (../src/amf/nas-path.c:219)
+[32m04/08 22:52:25.608[0m: [[33mamf[0m] [1;36mWARNING[0m: [suci-0-001-01-0000-1-1-81b870e31083083dd965f152a28932a01c729c735b686546b20a30fdf9b0a21690e8085c0615f3eaaa2a58a739] Registration reject [23] (../src/amf/nas-path.c:219)
+[32m04/08 22:52:35.625[0m: [[33mamf[0m] [1;36mWARNING[0m: [suci-0-001-01-0000-1-1-81b870e31083083dd965f152a28932a01c729c735b686546b20a30fdf9b0a21690e8085c0615f3eaaa2a58a739] Registration reject [23] (../src/amf/nas-path.c:219)

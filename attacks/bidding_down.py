@@ -4,17 +4,25 @@ Bidding-down Attack - FGT5004
 Thesis: On Enhancing 5G Security
 Method: UE advertises only NULL security algorithms
 """
-
 import subprocess
 import time
+import os
 
-CAPTURE_FILE = "/home/eit42s/thesis-5g/captures/bidding_down.pcap"
-LOG_FILE     = "/home/eit42s/thesis-5g/logs/bidding_down.log"
+BASE_DIR     = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+CAPTURE_FILE = os.path.join(BASE_DIR, "captures", "bidding_down.pcap")
+LOG_FILE     = os.path.join(BASE_DIR, "logs", "bidding_down.log")
+CONFIG_DIR   = os.path.join(BASE_DIR, "config")
+COMPOSE_FILE = os.path.join(BASE_DIR, "docker-compose.yml")
 
 def log(msg):
     print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] {msg}")
 
 def main():
+    os.makedirs(os.path.join(BASE_DIR, "logs"), exist_ok=True)
+    os.makedirs(os.path.join(BASE_DIR, "captures"), exist_ok=True)
+
+    start_time = time.strftime('%Y-%m-%dT%H:%M:%S')
+
     log("=" * 60)
     log("BIDDING-DOWN ATTACK - FGT5004")
     log("Target: NAS Security Mode Command")
@@ -24,29 +32,35 @@ def main():
     # PHASE 1: Start capture
     log("\n[PHASE 1] Starting capture...")
     subprocess.run("docker exec open5gs-amf rm -f /tmp/bidding_down.pcap", shell=True)
-    tcpdump = subprocess.Popen(
+    subprocess.Popen(
         "docker exec open5gs-amf tcpdump -i any -w /tmp/bidding_down.pcap",
         shell=True
     )
     time.sleep(3)
     log("[*] Capture started.")
 
-    # PHASE 2: Start UE with NULL security
+    # PHASE 2: Start UE with NULL security algorithms
     log("\n[PHASE 2] Starting UE with NULL integrity and NULL ciphering...")
     subprocess.run("docker rm -f ueransim-ue-bidding 2>/dev/null", shell=True)
 
     cid = subprocess.run(
-        """docker run -d \
+        f"""docker run -d \
             --name ueransim-ue-bidding \
             --network thesis-5g_5gcore \
             --ip 10.10.0.42 \
             --privileged \
-            -v /home/eit42s/thesis-5g/config/ue-bidding.yaml:/etc/ueransim/ue.yaml \
+            -v {CONFIG_DIR}/ue-bidding.yaml:/etc/ueransim/ue.yaml \
             ueransim-custom:3.2.7 ue /etc/ueransim/ue.yaml""",
         shell=True, capture_output=True, text=True
     ).stdout.strip()
 
-    time.sleep(20)
+    # Restart ue1/ue2 to make SCTP visible in capture
+    subprocess.run(
+        f"docker compose -f {COMPOSE_FILE} restart ue1 ue2",
+        shell=True, capture_output=True
+    )
+
+    time.sleep(30)
 
     logs = subprocess.run(
         "docker logs ueransim-ue-bidding 2>&1",
@@ -61,24 +75,50 @@ def main():
     subprocess.run(f"docker cp open5gs-amf:/tmp/bidding_down.pcap {CAPTURE_FILE}", shell=True)
     subprocess.run("docker rm -f ueransim-ue-bidding 2>/dev/null", shell=True)
 
+    # Verify pcap
+    pkt_count = subprocess.run(
+        f"tshark -r {CAPTURE_FILE} 2>/dev/null | wc -l",
+        shell=True, capture_output=True, text=True
+    ).stdout.strip()
+    ngap_count = subprocess.run(
+        f"tshark -r {CAPTURE_FILE} 2>/dev/null | grep -iE 'ngap|sctp' | wc -l",
+        shell=True, capture_output=True, text=True
+    ).stdout.strip()
+    log(f"[*] Packets in capture: {pkt_count}")
+    log(f"[*] NGAP/SCTP packets:  {ngap_count}")
+
     # PHASE 4: Analyze
     log("\n[PHASE 4] Analyzing security algorithm negotiation...")
-    result = subprocess.run(
-        f"tshark -r {CAPTURE_FILE} -d 'sctp.port==38412,ngap' 2>/dev/null | grep -i 'reject\\|mismatch'",
+
+    tshark_result = subprocess.run(
+        f"tshark -r {CAPTURE_FILE} -d 'sctp.port==38412,ngap' 2>/dev/null "
+        f"| grep -iE 'reject|security mode'",
         shell=True, capture_output=True, text=True
     ).stdout
 
-    reject_count = result.lower().count("reject")
-    log(f"[*] Registration rejects: {reject_count}")
-    log(f"[*] Evidence:\n{result}")
+    amf_result = subprocess.run(
+        f"docker logs --since {start_time} open5gs-amf 2>&1 | grep -iE 'security|reject|algorithm'",
+        shell=True, capture_output=True, text=True
+    ).stdout
+
+    tshark_rejects = tshark_result.lower().count("reject")
+    amf_rejects    = amf_result.lower().count("reject")
+
+    log(f"[*] Tshark evidence:\n{tshark_result}")
+    log(f"[*] AMF log evidence:\n{amf_result}")
 
     with open(LOG_FILE, 'w') as f:
-        f.write(result)
+        f.write("=== TSHARK OUTPUT ===\n")
+        f.write(tshark_result)
+        f.write("\n=== AMF LOGS ===\n")
+        f.write(amf_result)
 
     log("\n" + "=" * 60)
     log("BIDDING-DOWN ATTACK RESULTS")
-    log(f"Registration rejects: {reject_count}")
-    log("AMF rejected NULL algorithms!" if reject_count > 0 else "No rejection detected")
+    log(f"PCap rejects (UE security mismatch): {tshark_rejects}")
+    log(f"AMF log rejects:                     {amf_rejects}")
+    log(f"NGAP/SCTP packets:                   {ngap_count}")
+    log("AMF rejected NULL algorithms! ✓" if (tshark_rejects + amf_rejects) > 0 else "No rejection detected")
     log("=" * 60)
     log(f"[*] Log:     {LOG_FILE}")
     log(f"[*] Capture: {CAPTURE_FILE}")

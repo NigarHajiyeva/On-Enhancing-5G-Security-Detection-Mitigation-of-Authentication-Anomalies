@@ -1,6 +1,6 @@
-RAND: 9296c7364c42cee38a5f45a2e654ca60
-[32m04/02 16:34:34.364[0m: [[33msbi[0m] [1;32mINFO[0m: [d508540a-2eb1-41f1-b49e-531eb65fbe91] Subscription created until 2026-04-03T16:34:34.337829+00:00 [duration:86400,validity:86399.973193,patch:43199.986596] (../lib/sbi/nnrf-handler.c:509)
-[32m04/02 16:34:34.376[0m: [[33msbi[0m] [1;32mINFO[0m: [d508aa86-2eb1-41f1-b49e-531eb65fbe91] Subscription created until 2026-04-03T16:34:34.340033+00:00 [duration:86400,validity:86399.963201,patch:43199.981600] (../lib/sbi/nnrf-handler.c:509)
-[32m04/02 16:34:34.389[0m: [[33msbi[0m] [1;32mINFO[0m: [d508be90-2eb1-41f1-b49e-531eb65fbe91] Subscription created until 2026-04-03T16:34:34.340536+00:00 [duration:86400,validity:86399.950803,patch:43199.975401] (../lib/sbi/nnrf-handler.c:509)
-[32m04/02 16:34:34.389[0m: [[33msbi[0m] [1;32mINFO[0m: [d508e230-2eb1-41f1-b49e-531eb65fbe91] Subscription created until 2026-04-03T16:34:34.341501+00:00 [duration:86400,validity:86399.951563,patch:43199.975781] (../lib/sbi/nnrf-handler.c:509)
-[32m04/02 16:34:34.397[0m: [[33msbi[0m] [1;32mINFO[0m: [d509437e-2eb1-41f1-b49e-531eb65fbe91] Subscription created until 2026-04-03T16:34:34.343950+00:00 [duration:86400,validity:86399.945960,patch:43199.972980] (../lib/sbi/nnrf-handler.c:509)
+RAND used: adc948e2e80ec7ec0326482556f304fa
+NGAP/SCTP packets: 32
+SCTP ABORT detected: True
+=== SCTP EVIDENCE ===
+15:32:22.082827 IP 10.10.0.30.38412 > 10.10.0.12.38412: sctp (1) [DATA] [TSN: 0] [SID: 0] [SSEQ 0] [PPID 0x3c] 
+15:32:22.083035 IP 10.10.0.12.38412 > 10.10.0.30.38412: sctp (1) [ABORT]

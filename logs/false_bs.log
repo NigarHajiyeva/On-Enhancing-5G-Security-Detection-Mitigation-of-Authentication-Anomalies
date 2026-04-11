@@ -1,5 +1,35 @@
-   18   2.837181   10.10.0.50 → 10.10.0.12   NGAP 140 NGSetupRequest
-   20   2.849904   10.10.0.12 → 10.10.0.50   NGAP 128 NGSetupResponse
-   72  18.421707   10.10.0.50 → 10.10.0.12   NGAP/NAS-5GS 184 InitialUEMessage, Registration request
-   80  18.474073   10.10.0.12 → 10.10.0.50   NGAP/NAS-5GS 152 SACK (Ack=1, Arwnd=106496) , DownlinkNASTransport, Authentication request
-   81  18.477356   10.10.0.50 → 10.10.0.12   NGAP/NAS-5GS 152 SACK (Ack=1, Arwnd=106496) , UplinkNASTransport, Authentication response
+=== TSHARK OUTPUT ===
+    8   0.149614   10.10.0.50 → 10.10.0.12   NGAP 140 NGSetupRequest
+   10   0.149801   10.10.0.12 → 10.10.0.50   NGAP 128 NGSetupResponse
+   31   0.986330   10.10.0.30 → 10.10.0.12   NGAP/NAS-5GS 184 InitialUEMessage, Registration request
+   39   0.999780   10.10.0.12 → 10.10.0.30   NGAP/NAS-5GS 152 SACK (Ack=0, Arwnd=106496) , DownlinkNASTransport, Authentication request
+   41   1.004293   10.10.0.30 → 10.10.0.12   NGAP/NAS-5GS 152 SACK (Ack=0, Arwnd=106496) , UplinkNASTransport, Authentication response
+   49   1.015162   10.10.0.30 → 10.10.0.12   NGAP/NAS-5GS 200 SACK (Ack=1, Arwnd=106451) , InitialUEMessage, Registration request
+   56   1.024899   10.10.0.12 → 10.10.0.30   NGAP/NAS-5GS 152 SACK (Ack=2, Arwnd=106496) , DownlinkNASTransport, Authentication request
+   89   1.043618   10.10.0.30 → 10.10.0.12   NGAP/NAS-5GS 152 SACK (Ack=3, Arwnd=106335) , UplinkNASTransport, Authentication response
+  331  41.526460   10.10.0.50 → 10.10.0.12   NGAP/NAS-5GS 184 InitialUEMessage, Registration request
+  339  41.535802   10.10.0.12 → 10.10.0.50   NGAP/NAS-5GS 152 SACK (Ack=1, Arwnd=106496) , DownlinkNASTransport, Authentication request
+  340  41.539833   10.10.0.50 → 10.10.0.12   NGAP/NAS-5GS 152 SACK (Ack=1, Arwnd=106496) , UplinkNASTransport, Authentication response
+
+=== AMF LOGS ===
+[32m04/10 23:48:41.547[0m: [[33mamf[0m] [1;32mINFO[0m: gNB-N2 accepted[10.10.0.50]:60057 in ng-path module (../src/amf/ngap-sctp.c:113)
+[32m04/10 23:48:41.547[0m: [[33mamf[0m] [1;32mINFO[0m: gNB-N2 accepted[10.10.0.50] in master_sm module (../src/amf/amf-sm.c:741)
+[32m04/10 23:48:41.547[0m: [[33mamf[0m] [1;32mINFO[0m: gNB-N2[10.10.0.50] max_num_of_ostreams : 10 (../src/amf/amf-sm.c:780)
+[32m04/10 23:50:08.075[0m: [[33mamf[0m] [1;32mINFO[0m: gNB-N2[10.10.0.50] connection refused!!! (../src/amf/amf-sm.c:793)
+[32m04/10 23:59:02.091[0m: [[33mamf[0m] [1;32mINFO[0m: gNB-N2 accepted[10.10.0.50]:58242 in ng-path module (../src/amf/ngap-sctp.c:113)
+[32m04/10 23:59:02.091[0m: [[33mamf[0m] [1;32mINFO[0m: gNB-N2 accepted[10.10.0.50] in master_sm module (../src/amf/amf-sm.c:741)
+[32m04/10 23:59:02.091[0m: [[33mamf[0m] [1;32mINFO[0m: gNB-N2[10.10.0.50] max_num_of_ostreams : 10 (../src/amf/amf-sm.c:780)
+
+=== ROGUE GNB LOGS ===
+UERANSIM v3.2.7
+[2026-04-10 23:59:02.056] [sctp] [info] Trying to establish SCTP connection... (10.10.0.12:38412)
+[2026-04-10 23:59:02.091] [sctp] [info] SCTP connection established (10.10.0.12:38412)
+[2026-04-10 23:59:02.092] [sctp] [debug] SCTP association setup ascId[1340]
+[2026-04-10 23:59:02.092] [ngap] [debug] Sending NG Setup Request
+[2026-04-10 23:59:02.092] [ngap] [debug] NG Setup Response received
+[2026-04-10 23:59:02.092] [ngap] [info] NG Setup procedure is successful
+[2026-04-10 23:59:43.427] [rrc] [debug] UE[1] new signal detected
+[2026-04-10 23:59:43.467] [rrc] [info] RRC Setup for UE[1]
+[2026-04-10 23:59:43.468] [ngap] [debug] Initial NAS message received from UE[1]
+[2026-04-10 23:59:43.505] [ngap] [debug] Initial Context Setup Request received
+[2026-04-10 23:59:43.779] [ngap] [info] PDU session resource(s) setup for UE[1] count[1]
