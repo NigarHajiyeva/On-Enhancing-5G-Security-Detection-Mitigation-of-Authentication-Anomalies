@@ -35,7 +35,7 @@ A Docker-based 5G network security framework for simulating, detecting, and miti
 
 ## Architecture
 
-![5G Testbed Architecture](architecture.svg)
+![5G Testbed Architecture](testbed_architecture_final.svg)
 
 ---
 
