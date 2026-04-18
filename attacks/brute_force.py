@@ -12,7 +12,7 @@ CAPTURE_FILE = os.path.join(BASE_DIR, "captures", "brute_force.pcap")
 LOG_FILE     = os.path.join(BASE_DIR, "logs", "brute_force.log")
 CONFIG_DIR   = os.path.join(BASE_DIR, "config")
 COMPOSE_FILE = os.path.join(BASE_DIR, "docker-compose.yml")
-ATTEMPTS     = 20
+ATTEMPTS     = 10
 
 def log(msg):
     print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] {msg}")
@@ -29,7 +29,7 @@ def main():
     log(f"Attempts: {ATTEMPTS} | Method: Wrong cryptographic key")
     log("=" * 60)
 
-    # PHASE 1: Start capture inside AMF container
+ # PHASE 1: Start capture inside AMF container
     log("[*] Starting capture inside AMF container...")
     subprocess.run("docker exec open5gs-amf rm -f /tmp/brute_force.pcap", shell=True)
     subprocess.Popen(
@@ -39,6 +39,23 @@ def main():
     time.sleep(3)
     log("[*] Capture started.")
 
+    # Restart ue1/ue2 AFTER capture starts to make SCTP visible
+    subprocess.run(
+        f"docker compose -f {COMPOSE_FILE} restart ue1 ue2",
+        shell=True, capture_output=True
+    )
+    time.sleep(40)
+    log("[*] Baseline UEs reconnected.")
+    
+    
+    # Verify UEs connected
+    ue_check = subprocess.run(
+        "docker logs open5gs-amf 2>&1 | grep 'SUPI' | tail -2",
+        shell=True, capture_output=True, text=True
+    ).stdout
+    log(f"[*] UE status:\n{ue_check}")
+    
+    
     # PHASE 2: Run attack attempts
     log("\n[PHASE 2] Executing Brute-force Attack...")
     for i in range(1, ATTEMPTS + 1):
@@ -64,7 +81,7 @@ def main():
                 shell=True, capture_output=True
             )
 
-        time.sleep(15)
+        time.sleep(3)
         subprocess.run(f"docker rm -f {cid} 2>/dev/null", shell=True)
 
         # Check AMF logs for MAC failure
@@ -100,26 +117,19 @@ def main():
     ).stdout.strip()
     log(f"[*] NGAP/SCTP packets: {ngap_count}")
 
-    # PHASE 4: Analyze
+ # PHASE 4: Analyze — from AMF logs
     log("\n[PHASE 4] Analyzing results...")
-    # Analyze from capture - more accurate
-    mac_failures = int(subprocess.run(
-        f"tshark -r {CAPTURE_FILE} -d 'sctp.port==38412,ngap' 2>/dev/null | grep 'Authentication failure' | wc -l",
+    ausf_logs = subprocess.run(
+        "docker logs open5gs-amf 2>&1 | grep -iE 'MAC failure|Authentication reject' | tail -20",
         shell=True, capture_output=True, text=True
-    ).stdout.strip() or 0)
+    ).stdout
 
-    auth_rejects = int(subprocess.run(
-        f"tshark -r {CAPTURE_FILE} -d 'sctp.port==38412,ngap' 2>/dev/null | grep 'Authentication reject' | wc -l",
-        shell=True, capture_output=True, text=True
-    ).stdout.strip() or 0)
-
-    reg_rejects = int(subprocess.run(
-        f"tshark -r {CAPTURE_FILE} -d 'sctp.port==38412,ngap' 2>/dev/null | grep 'Registration reject' | wc -l",
-        shell=True, capture_output=True, text=True
-    ).stdout.strip() or 0)
+    mac_failures = ausf_logs.count("MAC failure")
+    auth_rejects = ausf_logs.count("Authentication reject")
+    reg_rejects  = ausf_logs.count("Registration reject")
 
     with open(LOG_FILE, 'w') as f:
-        f.write(f"MAC failures: {mac_failures}\nAuth rejects: {auth_rejects}\nReg rejects: {reg_rejects}\n")
+        f.write(ausf_logs)
 
     log("\n" + "=" * 60)
     log("BRUTE-FORCE ATTACK RESULTS")

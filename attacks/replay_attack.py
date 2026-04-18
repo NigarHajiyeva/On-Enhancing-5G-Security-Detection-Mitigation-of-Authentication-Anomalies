@@ -65,12 +65,9 @@ def main():
     time.sleep(3)
     subprocess.run(f"docker compose -f {COMPOSE_FILE} start ue1",
                    shell=True, capture_output=True)
-    time.sleep(35)
+    time.sleep(25)
 
-    subprocess.run("docker exec open5gs-amf pkill tcpdump", shell=True)
-    time.sleep(2)
-    subprocess.run(f"docker cp open5gs-amf:/tmp/replay.pcap {CAPTURE_FILE}", shell=True)
-    log("[+] Legitimate authentication captured.")
+    log("[+] Legitimate authentication captured. Capture continues...")
 
     ngap_count = subprocess.run(
         f"tshark -r {CAPTURE_FILE} 2>/dev/null | grep -iE 'ngap|sctp' | wc -l",
@@ -91,13 +88,7 @@ def main():
     # PHASE 3: Send replay packet + capture ABORT
     log("\n[PHASE 3] Sending replay packet to AMF...")
 
-    # Start tcpdump to capture SCTP ABORT
-    subprocess.run("docker exec open5gs-amf rm -f /tmp/replay_abort.pcap", shell=True)
-    abort_cap = subprocess.Popen(
-        "docker exec open5gs-amf tcpdump -i eth0 sctp -w /tmp/replay_abort.pcap",
-        shell=True
-    )
-    time.sleep(2)
+    time.sleep(8)
 
     replay_result = subprocess.run(
         f"""docker run --rm \
@@ -119,10 +110,12 @@ print('sent')
     time.sleep(3)
     subprocess.run("docker exec open5gs-amf pkill tcpdump", shell=True)
     time.sleep(2)
+    subprocess.run(f"docker cp open5gs-amf:/tmp/replay.pcap {CAPTURE_FILE}", shell=True)
+    log("[+] Full capture saved (auth + replay + ABORT)")
 
     # Check SCTP ABORT
     abort_check = subprocess.run(
-        "docker exec open5gs-amf tcpdump -r /tmp/replay_abort.pcap -nn 2>/dev/null | grep -iE 'ABORT|DATA'",
+        f"tshark -r {CAPTURE_FILE} 2>/dev/null | grep -iE 'ABORT'",
         shell=True, capture_output=True, text=True
     ).stdout.strip()
 
