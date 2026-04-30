@@ -734,7 +734,7 @@ curl -s -X POST http://admin:12345@localhost:3000/api/dashboards/db \
 slug: on-enhancing-5g-security-detection-mitigation
 title: On Enhancing 5G Security: Detection and Mitigation of Authentication Anomalies
 summary: A hybrid rule-based and Random Forest detection framework for 5G authentication anomalies, implemented on a fully containerized Open5GS and UERANSIM testbed with MITRE FiGHT-aligned attack scenarios and automated mitigation.
-startDate: 2025-09-01
+startDate: 2026-01-15
 endDate: 2026-04-30
 repositoryUrl: https://github.com/NigarHajiyeva/On-Enhancing-5G-Security-Detection-Mitigation-of-Authentication-Anomalies
 logos:
