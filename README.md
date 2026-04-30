@@ -40,7 +40,7 @@ This repository contains the complete implementation of a hybrid detection and m
 | Bidding-Down | FGT5004 | Reg rejects + SMC | Rule-based |
 | Replay Attack | FGT1040 | SCTP ABORT | Rule-based |
 | False Base Station | FGT1588.501 | Unauthorized NGSetup | Rule-based |
-| Unknown Pattern | — | Low RF confidence | RF + threshold |
+| Unknown Pattern | — | Low RF confidence | Random Forest |
 
 ---
 
