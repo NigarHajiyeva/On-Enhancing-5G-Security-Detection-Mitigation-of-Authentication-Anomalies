@@ -1,7 +1,7 @@
 label,total_packets,auth_requests,reg_requests,reg_rejects,sec_mode_cmds,ng_setup_req,suci_unencrypted,duration,auth_rate,reg_rate,reject_rate,auth_success_rate,rand_repeat
 normal,315,2,2,0,2,0,0,45.0,0.0444,0.0444,0.0,1.0,0
-brute_force,611,10,10,0,0,0,0,146.46,0.0683,0.0683,0.0,1.0,0
-supi_harvest,173,1,1,0,1,0,1,21.7,0.0461,0.0461,0.0,1.0,0
-bidding_down,82,0,2,2,0,0,0,20.0,0.0,0.1,1.0,0.0,0
-replay,38,0,0,0,0,0,0,10.71,0.0,0.0,0.0,0.0,0
-false_bs,220,1,1,0,1,2,0,37.53,0.0266,0.0266,0.0,1.0,0
+brute_force,2156,28,28,0,8,0,0,400.37,0.0699,0.0699,0.0,1.0,0
+supi_harvest,339,3,3,0,3,0,1,32.29,0.0929,0.0929,0.0,1.0,0
+bidding_down,290,2,6,4,2,0,0,33.44,0.0598,0.1794,0.6667,0.0,0
+replay,208,1,1,0,1,0,0,40.4,0.0248,0.0248,0.0,1.0,0
+false_bs,529,3,3,0,3,2,0,85.43,0.0351,0.0351,0.0,1.0,0

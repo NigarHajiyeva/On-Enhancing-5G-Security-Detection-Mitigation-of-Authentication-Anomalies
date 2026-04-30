@@ -39,12 +39,10 @@ def log(msg, level="INFO"):
     with open(LOG_FILE, 'a') as f:
         f.write(line + "\n")
 
-# ─── Feature Extraction ────────────────────────────────────
 def extract_live_features(pcap_path, t_start=0, t_end=30):
     duration = t_end - t_start
 
     def count(filt=""):
-        """Count with NGAP decode"""
         time_filt = f"frame.time_relative >= {t_start} && frame.time_relative < {t_end}"
         full = f"({time_filt}) && ({filt})" if filt else time_filt
         r = subprocess.run(
@@ -58,7 +56,6 @@ def extract_live_features(pcap_path, t_start=0, t_end=30):
             return 0
 
     def count_nodecode(filt=""):
-        """Count WITHOUT NGAP decode — for SCTP chunk filters"""
         time_filt = f"frame.time_relative >= {t_start} && frame.time_relative < {t_end}"
         full = f"({time_filt}) && ({filt})" if filt else time_filt
         r = subprocess.run(
@@ -80,7 +77,6 @@ def extract_live_features(pcap_path, t_start=0, t_end=30):
     ng_setup_req  = count("ngap.procedureCode == 21")
     sctp_abort    = count_nodecode("sctp.chunk_type == 6")
 
-    # SUCI NULL scheme check
     r = subprocess.run(
         f"tshark -r {pcap_path} -d 'sctp.port==38412,ngap' "
         f"-Y \"frame.time_relative >= {t_start} && frame.time_relative < {t_end}\" "
@@ -95,7 +91,6 @@ def extract_live_features(pcap_path, t_start=0, t_end=30):
     ).stdout
     suci_unencrypted = 1 if (r.strip() and "10.10.0.41" in ip_check) else 0
 
-    # RAND repeat check
     result = subprocess.run(
         f"tshark -r {pcap_path} -d 'sctp.port==38412,ngap' "
         f"-Y \"frame.time_relative >= {t_start} && frame.time_relative < {t_end}\" "
@@ -129,44 +124,40 @@ def extract_live_features(pcap_path, t_start=0, t_end=30):
         'sctp_abort':        sctp_abort,
     }
 
-# ─── Detection ─────────────────────────────────────────────
 def detect(features, rf_model, scaler):
     """Hybrid detection: definitive rules first, then RF"""
 
-    # Rule 1: SUPI Harvesting — NULL scheme is definitive
     if features['suci_unencrypted'] == 1:
         return 'supi_harvest', 1.0, 'rule'
 
-    # Rule 2: Bidding Down — security reject + sec_mode is definitive
     if features['reg_rejects'] >= 1 and features['sec_mode_cmds'] >= 1:
         return 'bidding_down', 1.0, 'rule'
 
-    # Rule 3: Brute Force — auth failures are definitive
-    if features['auth_failures'] > 0:
+    # High-rate brute force only: rule (>=5 failures across full pcap)
+    if features['auth_failures'] >= 5:
         return 'brute_force', 1.0, 'rule'
+    # Low-rate brute force (1-4 failures): passed to RF
 
-    # Rule 4: Replay — SCTP ABORT is definitive
     if features['sctp_abort'] >= 1:
         return 'replay', 1.0, 'rule'
 
-    # Rule 5: False BS — NGSetup from unknown gNB
     if features['ng_setup_req'] == 99:
         return 'false_bs', 1.0, 'rule'
 
-    # RF for remaining cases
     X = pd.DataFrame([features])[FEATURES]
     X_scaled = scaler.transform(X)
     prediction = rf_model.predict(X_scaled)[0]
     confidence = np.max(rf_model.predict_proba(X_scaled)[0])
     return prediction, confidence, 'rf'
 
-# ─── Mitigation ────────────────────────────────────────────
 def apply_mitigation(attack_type):
     actions = []
     if attack_type == 'brute_force':
         log("[MITIGATE] Brute Force → Rate limiting + IMSI block", "ALERT")
         subprocess.run(
-            "docker rm -f $(docker ps -q --filter 'ancestor=ueransim-custom:3.2.7') 2>/dev/null || true",
+            "docker ps --filter 'ancestor=ueransim-custom:3.2.7' --format '{{.Names}}' | "
+            "grep -vE 'ueransim-gnb|ueransim-ue1|ueransim-ue2' | "
+            "xargs -r docker rm -f 2>/dev/null || true",
             shell=True, capture_output=True
         )
         actions = ["rate_limiting", "attacker_ue_blocked", "alert_generated"]
@@ -188,49 +179,42 @@ def apply_mitigation(attack_type):
         actions = ["no_action"]
     return actions
 
-# ─── Prometheus Push ───────────────────────────────────────
 def push_metrics(result):
     attack_map = {
         'normal': 0, 'brute_force': 1, 'supi_harvest': 2,
         'bidding_down': 3, 'replay': 4, 'false_bs': 5
     }
     prediction_id = attack_map.get(result['prediction'], -1)
-    correct       = 1 if result['correct'] else 0
 
     metrics = f"""# HELP detection_prediction Attack type detected
 # TYPE detection_prediction gauge
-detection_prediction{{label="{result['label']}"}} {prediction_id}
-# HELP detection_correct Detection correctness
-# TYPE detection_correct gauge
-detection_correct{{label="{result['label']}"}} {correct}
+detection_prediction{{capture="{result['capture']}"}} {prediction_id}
 # HELP detection_confidence Detection confidence score
 # TYPE detection_confidence gauge
-detection_confidence{{label="{result['label']}"}} {result['confidence']}
+detection_confidence{{capture="{result['capture']}"}} {result['confidence']}
 # HELP detection_response_time Response time in seconds
 # TYPE detection_response_time gauge
-detection_response_time{{label="{result['label']}"}} {result['response_time']}
+detection_response_time{{capture="{result['capture']}"}} {result['response_time']}
 # HELP mitigation_applied Mitigation applied
 # TYPE mitigation_applied gauge
-mitigation_applied{{label="{result['label']}",attack="{result['prediction']}"}} 1
+mitigation_applied{{capture="{result['capture']}",attack="{result['prediction']}"}} 1
 """
     subprocess.run(
         f"curl -s --data-binary @- "
-        f"{PUSHGATEWAY}/metrics/job/thesis_5g/instance/{result['label']}",
+        f"{PUSHGATEWAY}/metrics/job/thesis_5g/instance/{result['capture']}",
         input=metrics.encode(),
         shell=True, capture_output=True
     )
     log(f"[METRICS] Pushed to Pushgateway ✓")
 
-# ─── Main Pipeline ─────────────────────────────────────────
-def run_pipeline(pcap_path, label="unknown"):
+def run_pipeline(pcap_path, capture_name):
     log(f"\n{'='*50}")
-    log(f"PIPELINE START: {label}")
+    log(f"PIPELINE START: {capture_name}")
     log(f"PCap: {pcap_path}")
 
     t_start = time.time()
 
     log("[STEP 1] Extracting features (best window)...")
-    # Get duration
     dur_r = subprocess.run(
         f"tshark -r {pcap_path} -T fields -e frame.time_relative 2>/dev/null | tail -1",
         shell=True, capture_output=True, text=True
@@ -240,13 +224,11 @@ def run_pipeline(pcap_path, label="unknown"):
     except:
         duration = WINDOW_SIZE
 
-    # Extract all windows and pick most informative
     best_features = None
     best_score = -1
     t = 0
-    while t < duration:  # process all possible windows
+    while t < duration:
         f = extract_live_features(pcap_path, t, t + WINDOW_SIZE)
-        # Score: prioritize attack signals
         score = (f['suci_unencrypted'] * 100 +
                  f['auth_failures'] * 50 +
                  f['sctp_abort'] * 50 +
@@ -258,16 +240,18 @@ def run_pipeline(pcap_path, label="unknown"):
         if score > best_score:
             best_score = score
             best_features = f
-        t += WINDOW_SIZE  # non-overlapping for speed
+        t += WINDOW_SIZE
+
     if best_features is None:
         best_features = extract_live_features(pcap_path, 0, WINDOW_SIZE)
     features = best_features
+
     log(f"  auth={features['auth_requests']} reg={features['reg_requests']} "
         f"rej={features['reg_rejects']} suci={features['suci_unencrypted']} "
         f"ng={features['ng_setup_req']} auth_fail={features['auth_failures']} "
         f"sctp_abort={features['sctp_abort']}")
 
-    # Direct SCTP ABORT check across full pcap (for replay)
+    # Full-pcap SCTP ABORT check
     abort_check = subprocess.run(
         f"tshark -r {pcap_path} -Y 'sctp.chunk_type == 6' 2>/dev/null | wc -l",
         shell=True, capture_output=True, text=True
@@ -278,19 +262,37 @@ def run_pipeline(pcap_path, label="unknown"):
     except:
         pass
 
-    # Rogue gNB check — NGSetup from unknown IP (not 10.10.0.30)
+    # Full-pcap auth failure check (brute force spans multiple windows)
+    auth_fail_check = subprocess.run(
+        f"tshark -r {pcap_path} -d 'sctp.port==38412,ngap' "
+        f"-Y 'nas_5gs.mm.message_type == 0x59' 2>/dev/null | wc -l",
+        shell=True, capture_output=True, text=True
+    )
+    try:
+        total_auth_failures = int(auth_fail_check.stdout.strip())
+        if total_auth_failures > features['auth_failures']:
+            features['auth_failures'] = total_auth_failures
+            log(f"  [full-pcap] auth_failures updated: {total_auth_failures}")
+    except:
+        pass
+
+    # Full-pcap rogue gNB check
     rogue_check = subprocess.run(
         f"tshark -r {pcap_path} -d 'sctp.port==38412,ngap' "
         f"-Y 'ngap.procedureCode == 21' -T fields -e ip.src 2>/dev/null",
         shell=True, capture_output=True, text=True
     )
-    rogue_ips = [ip.strip() for ip in rogue_check.stdout.strip().split() 
+    rogue_ips = [ip.strip() for ip in rogue_check.stdout.strip().split()
                  if ip.strip() and ip.strip() not in ('10.10.0.30', '10.10.0.12')]
     if rogue_ips:
-        features['ng_setup_req'] = 99  # Signal rogue gNB
+        features['ng_setup_req'] = 99
 
     log("[STEP 2] Running hybrid detector...")
     prediction, confidence, method = detect(features, rf_model, scaler)
+    # Low confidence RF prediction → flag as unknown
+    if method == 'rf' and confidence < 0.65:
+        log(f"  [WARNING] Low confidence ({confidence:.2f}) → flagging as unknown", "ALERT")
+        prediction = 'unknown'
     log(f"  Prediction: {prediction} (confidence: {confidence:.2f}, method: {method})")
 
     if prediction != 'normal':
@@ -307,19 +309,17 @@ def run_pipeline(pcap_path, label="unknown"):
 
     result = {
         "timestamp":     datetime.now().isoformat(),
-        "label":         label,
+        "capture":       capture_name,
         "prediction":    prediction,
         "confidence":    round(confidence, 3),
         "method":        method,
-        "correct":       prediction == label,
         "actions":       actions,
         "response_time": response_time,
         "features":      features
     }
 
     log(f"[DONE] Response time: {response_time}s")
-    log(f"[RESULT] Predicted: {prediction} | Actual: {label} | "
-        f"{'CORRECT ✓' if prediction == label else 'WRONG ✗'}")
+    log(f"[RESULT] Capture: {capture_name} → Detected: {prediction} ({method}, {confidence:.2f})")
 
     push_metrics(result)
     return result
@@ -353,51 +353,46 @@ def main():
     rf_model.fit(X_scaled, y_train)
     log("[INIT] Model trained on 600 samples ✓")
 
-    test_captures = {
-        "normal":       os.path.join(BASE_DIR, "captures", "test", "normal_traffic.pcap"),
-        "brute_force":  os.path.join(BASE_DIR, "captures", "test", "brute_force.pcap"),
-        "supi_harvest": os.path.join(BASE_DIR, "captures", "test", "supi_harvest.pcap"),
-        "bidding_down": os.path.join(BASE_DIR, "captures", "test", "bidding_down.pcap"),
-        "replay":       os.path.join(BASE_DIR, "captures", "test", "replay_capture.pcap"),
-        "false_bs":     os.path.join(BASE_DIR, "captures", "test", "false_bs.pcap"),
-    }
+    # Auto-discover test captures
+    test_dir = os.path.join(BASE_DIR, "captures", "test")
+    if not os.path.exists(test_dir):
+        log(f"[ERROR] Test directory not found: {test_dir}")
+        return
+
+    test_captures = {}
+    for fname in sorted(os.listdir(test_dir)):
+        if fname.endswith(".pcap"):
+            capture_name = fname.replace(".pcap", "")
+            test_captures[capture_name] = os.path.join(test_dir, fname)
+            log(f"[INIT] Found: {fname}")
+
+    if not test_captures:
+        log("[ERROR] No pcap files found in test/")
+        return
 
     results = []
-    for label, pcap in test_captures.items():
-        if not os.path.exists(pcap):
-            log(f"[SKIP] {label} — file not found")
-            continue
-        result = run_pipeline(pcap, label)
+    for capture_name, pcap in test_captures.items():
+        result = run_pipeline(pcap, capture_name)
         results.append(result)
         time.sleep(1)
 
-    correct  = sum(1 for r in results if r['correct'])
     total    = len(results)
-    accuracy = correct / total if total > 0 else 0
     avg_time = sum(r['response_time'] for r in results) / total if total > 0 else 0
 
     log("\n" + "=" * 60)
     log("PIPELINE FINAL SUMMARY")
     log("=" * 60)
     log(f"Total captures processed: {total}")
-    log(f"Correct detections:       {correct}/{total}")
-    log(f"Pipeline accuracy:        {accuracy*100:.1f}%")
     log(f"Avg response time:        {avg_time:.2f}s")
-    log(f"\n{'Label':<16} {'Predicted':<16} {'Correct':>8} {'Time':>8}")
-    log("-" * 52)
+    log(f"\n{'Capture':<20} {'Detected':<16} {'Method':<8} {'Conf':>6} {'Time':>8}")
+    log("-" * 62)
     for r in results:
-        status = "✓" if r['correct'] else "✗"
-        log(f"{r['label']:<16} {r['prediction']:<16} {status:>8} {r['response_time']:>7.1f}s")
+        log(f"{r['capture']:<20} {r['prediction']:<16} {r['method']:<8} "
+            f"{r['confidence']:>6.2f} {r['response_time']:>7.1f}s")
 
-    summary_metrics = f"""# HELP pipeline_accuracy Overall pipeline accuracy
-# TYPE pipeline_accuracy gauge
-pipeline_accuracy {accuracy}
-# HELP pipeline_total_captures Total captures processed
+    summary_metrics = f"""# HELP pipeline_total_captures Total captures processed
 # TYPE pipeline_total_captures gauge
 pipeline_total_captures {total}
-# HELP pipeline_correct_detections Correct detections
-# TYPE pipeline_correct_detections gauge
-pipeline_correct_detections {correct}
 # HELP pipeline_avg_response_time Average response time
 # TYPE pipeline_avg_response_time gauge
 pipeline_avg_response_time {avg_time}
@@ -412,9 +407,8 @@ pipeline_avg_response_time {avg_time}
 
     report = {
         "timestamp": datetime.now().isoformat(),
-        "accuracy":  accuracy,
         "avg_response_time": avg_time,
-        "results":   results
+        "results": results
     }
     with open(REPORT_FILE, 'w') as f:
         json.dump(report, f, indent=2)

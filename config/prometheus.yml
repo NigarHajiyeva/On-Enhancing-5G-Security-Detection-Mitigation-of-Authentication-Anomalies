@@ -6,3 +6,7 @@ scrape_configs:
     fallback_scrape_protocol: PrometheusText0.0.4
     static_configs:
       - targets: ['10.10.0.12:9090']
+  - job_name: 'pushgateway'
+    honor_labels: true
+    static_configs:
+      - targets: ['10.10.0.70:9091']

@@ -1,18 +1,17 @@
 #!/usr/bin/env python3
 """
-Brute-force Attack - FGT1110.001
-Thesis: On Enhancing 5G Security
+Brute-force Attack (Slow) - FGT1110.001
 """
 import subprocess
 import time
 import os
 
 BASE_DIR     = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-CAPTURE_FILE = os.path.join(BASE_DIR, "captures", "test", "brute_force.pcap")
-LOG_FILE     = os.path.join(BASE_DIR, "logs", "brute_force.log")
+CAPTURE_FILE = os.path.join(BASE_DIR, "captures", "brute_force_slow.pcap")
+LOG_FILE     = os.path.join(BASE_DIR, "logs", "brute_force_slow.log")
 CONFIG_DIR   = os.path.join(BASE_DIR, "config")
 COMPOSE_FILE = os.path.join(BASE_DIR, "docker-compose.yml")
-ATTEMPTS     = 10
+ATTEMPTS     = 3
 
 def log(msg):
     print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] {msg}")
@@ -29,30 +28,29 @@ def count_in_logs(keyword, since):
 
 def main():
     os.makedirs(os.path.join(BASE_DIR, "logs"), exist_ok=True)
-    os.makedirs(os.path.join(BASE_DIR, "captures", "test"), exist_ok=True)
+    os.makedirs(os.path.join(BASE_DIR, "captures"), exist_ok=True)
 
     log("=" * 60)
-    log("BRUTE-FORCE ATTACK - FGT1110.001")
-    log("Target: 5G Authentication (AMF → AUSF → UDM)")
-    log(f"Attempts: {ATTEMPTS} | Method: Wrong cryptographic key")
+    log("BRUTE-FORCE ATTACK (SLOW) - FGT1110.001")
+    log(f"Attempts: {ATTEMPTS} | Interval: 15s | Method: Wrong key")
     log("=" * 60)
 
     # PHASE 1: Start capture
     log("[*] Starting capture inside AMF container...")
-    subprocess.run("docker exec open5gs-amf rm -f /tmp/brute_force.pcap", shell=True)
+    subprocess.run("docker exec open5gs-amf rm -f /tmp/bf_slow.pcap", shell=True)
     subprocess.Popen(
-        "docker exec open5gs-amf tcpdump -i eth0 -w /tmp/brute_force.pcap",
+        "docker exec open5gs-amf tcpdump -i eth0 -w /tmp/bf_slow.pcap",
         shell=True
     )
     time.sleep(3)
     since = time.strftime('%Y-%m-%dT%H:%M:%S')
     log(f"[*] Capture started. Logging from: {since}")
 
-    # PHASE 2: Run attack attempts
-    log("\n[PHASE 2] Executing Brute-force Attack...")
+    # PHASE 2: Slow attempts
+    log("\n[PHASE 2] Executing slow brute-force...")
+    mac_count = 0
     for i in range(1, ATTEMPTS + 1):
         log(f"[*] Attempt {i}/{ATTEMPTS}...")
-
         cid = subprocess.run(
             f"docker run -d --network thesis-5g_5gcore --privileged "
             f"-v {CONFIG_DIR}/attacker.yaml:/etc/ueransim/ue.yaml "
@@ -70,14 +68,16 @@ def main():
         failures = count_in_logs("MAC failure", since)
         log(f"[+] Attempt {i}: MAC failures so far: {failures}")
 
-        time.sleep(3)
+        if i < ATTEMPTS:
+            log(f"[*] Waiting 15s before next attempt...")
+            time.sleep(15)
 
     # PHASE 3: Stop capture
     log("\n[PHASE 3] Stopping capture...")
     subprocess.run("docker exec open5gs-amf pkill tcpdump", shell=True)
     time.sleep(5)
     subprocess.run(
-        f"docker cp open5gs-amf:/tmp/brute_force.pcap {CAPTURE_FILE}",
+        f"docker cp open5gs-amf:/tmp/bf_slow.pcap {CAPTURE_FILE}",
         shell=True
     )
 
@@ -96,20 +96,13 @@ def main():
         shell=True, capture_output=True, text=True
     ).stdout.strip()
 
-    auth_fail_count = subprocess.run(
-        f"tshark -r {CAPTURE_FILE} -d 'sctp.port==38412,ngap' "
-        f"-Y 'nas_5gs.mm.message_type == 0x59' 2>/dev/null | wc -l",
-        shell=True, capture_output=True, text=True
-    ).stdout.strip()
-
     log("\n" + "=" * 60)
-    log("BRUTE-FORCE ATTACK RESULTS")
-    log(f"Total attempts:        {ATTEMPTS}")
-    log(f"MAC failures (log):    {mac_failures}")
-    log(f"Auth rejects (log):    {auth_rejects}")
-    log(f"Total packets:         {pkt_count}")
-    log(f"SCTP packets:          {sctp_count}")
-    log(f"Auth fail (pcap):      {auth_fail_count}")
+    log("SLOW BRUTE-FORCE RESULTS")
+    log(f"Total attempts:    {ATTEMPTS}")
+    log(f"MAC failures:      {mac_failures}")
+    log(f"Auth rejects:      {auth_rejects}")
+    log(f"Total packets:     {pkt_count}")
+    log(f"SCTP packets:      {sctp_count}")
     log("Attack DETECTED ✓" if mac_failures > 0 else "Not detected")
     log("=" * 60)
     log(f"[*] Capture: {CAPTURE_FILE}")

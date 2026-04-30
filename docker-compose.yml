@@ -248,7 +248,7 @@ services:
     image: prom/prometheus:latest
     container_name: prometheus
     ports:
-      - "9091:9090"
+      - "9090:9090"
     volumes:
       - ./config/prometheus.yml:/etc/prometheus/prometheus.yml
     networks:
@@ -268,6 +268,16 @@ services:
     networks:
       5gcore:
         ipv4_address: 10.10.0.61
+    restart: unless-stopped
+
+  pushgateway:
+    image: prom/pushgateway:latest
+    container_name: pushgateway
+    networks:
+      5gcore:
+        ipv4_address: 10.10.0.70
+    ports:
+      - "9091:9091"
     restart: unless-stopped
 
 volumes:
