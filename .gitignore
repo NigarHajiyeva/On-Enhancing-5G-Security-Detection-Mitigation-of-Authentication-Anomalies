@@ -6,12 +6,6 @@ __pycache__/
 # Logs
 logs/
 
-# Captures — large binary files
-captures/*.pcap
-captures/test/*.pcap
-
-# Datasets — large ML files
-datasets/
 
 # Docker
 .env

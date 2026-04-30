@@ -7,6 +7,7 @@ Runs all 5 attacks sequentially with cleanup between each
 import subprocess
 import time
 import os
+import json
 
 BASE_DIR     = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 ATTACKS_DIR  = os.path.join(BASE_DIR, "attacks")
@@ -44,8 +45,6 @@ def restart_baseline():
         shell=True, capture_output=True
     )
     time.sleep(40)
-
-    # Verify UEs are connected
     result = subprocess.run(
         "docker logs open5gs-amf 2>&1 | grep 'SUPI' | tail -2",
         shell=True, capture_output=True, text=True
@@ -53,7 +52,6 @@ def restart_baseline():
     log(f"[BASELINE] AMF status:\n{result}")
 
 def get_metrics():
-    """Collect current Prometheus metrics"""
     metrics = {}
     queries = {
         "reg_init_req":  "fivegs_amffunction_rm_reginitreq",
@@ -65,11 +63,10 @@ def get_metrics():
     }
     for name, query in queries.items():
         result = subprocess.run(
-            f'curl -s "http://localhost:9091/api/v1/query?query={query}"',
+            f'curl -s "http://localhost:9090/api/v1/query?query={query}"',
             shell=True, capture_output=True, text=True
         ).stdout
         try:
-            import json
             data = json.loads(result)
             if data["data"]["result"]:
                 metrics[name] = float(data["data"]["result"][0]["value"][1])
@@ -84,28 +81,24 @@ def run_attack(name, script, use_sudo=False):
     log(f"STARTING ATTACK: {name}")
     log("=" * 60)
 
-    # Metrics before attack
     before = get_metrics()
     log(f"[METRICS BEFORE] reg_req={before['reg_init_req']} "
         f"auth_req={before['auth_req']} "
         f"auth_fail={before['auth_fail']} "
         f"reg_fail={before['reg_init_fail']}")
 
-    # Run attack
     prefix = "sudo " if use_sudo else ""
-    result = subprocess.run(
+    subprocess.run(
         f"{prefix}python3 {os.path.join(ATTACKS_DIR, script)}",
         shell=True
     )
 
-    # Metrics after attack
     after = get_metrics()
     log(f"[METRICS AFTER]  reg_req={after['reg_init_req']} "
         f"auth_req={after['auth_req']} "
         f"auth_fail={after['auth_fail']} "
         f"reg_fail={after['reg_init_fail']}")
 
-    # Delta
     log(f"[DELTA] reg_req=+{after['reg_init_req']-before['reg_init_req']:.0f} "
         f"auth_req=+{after['auth_req']-before['auth_req']:.0f} "
         f"auth_fail=+{after['auth_fail']-before['auth_fail']:.0f} "
@@ -114,18 +107,14 @@ def run_attack(name, script, use_sudo=False):
     log(f"ATTACK COMPLETED: {name}")
     log("=" * 60)
 
-    # Cleanup after attack
     cleanup()
     time.sleep(10)
-
-    # Restore baseline
     restart_baseline()
     time.sleep(15)
 
 def main():
     os.makedirs(os.path.join(BASE_DIR, "logs"), exist_ok=True)
 
-    # Clear log file
     with open(LOG_FILE, 'w') as f:
         f.write("")
 
@@ -135,20 +124,17 @@ def main():
     log(f"Time: {time.strftime('%Y-%m-%d %H:%M:%S')}")
     log("=" * 60)
 
-    # Initial cleanup
     cleanup()
 
-    # Verify baseline
     log("\n[INIT] Verifying baseline...")
     restart_baseline()
 
-    # Attack list: (name, script, use_sudo)
     attacks = [
-        ("SUPI Harvesting    - FGT5019",    "supi_harvest.py",  False),
-        ("Bidding Down       - FGT5004",    "bidding_down.py",  False),
-        ("Brute Force        - FGT1110.001","brute_force.py",   True),
-        ("Replay Attack      - FGT1040",    "replay_attack.py", True),
-        ("False Base Station - FGT1588.501","false_bs.py",      False),
+        ("SUPI Harvesting    - FGT5019",     "supi_harvest.py",  False),
+        ("Bidding Down       - FGT5004",     "bidding_down.py",  False),
+        ("Brute Force        - FGT1110.001", "brute_force.py",   False),
+        ("Replay Attack      - FGT1040",     "replay_attack.py", True),
+        ("False Base Station - FGT1588.501", "false_bs.py",      False),
     ]
 
     results = []
@@ -157,7 +143,6 @@ def main():
         results.append(name)
         time.sleep(20)
 
-    # Final summary
     log("\n" + "=" * 60)
     log("ALL ATTACKS COMPLETED")
     log("=" * 60)
@@ -165,8 +150,8 @@ def main():
         log(f"  ✓ {r}")
     log("=" * 60)
     log(f"[*] Master log: {LOG_FILE}")
-    log(f"[*] Check Grafana: http://localhost:3000")
-    log(f"[*] Prometheus:    http://localhost:9091")
+    log(f"[*] Check Grafana:  http://localhost:3000")
+    log(f"[*] Prometheus:     http://localhost:9090")
 
 if __name__ == "__main__":
     main()
